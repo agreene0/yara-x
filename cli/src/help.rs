@@ -87,11 +87,15 @@ Doesn't modify the files. If formatting is required prints the names of files
 that would be modified and exits with 1. Exits with 0 if all files were already
 formatted correctly."#;
 
-pub const FMT_TAB_SIZE: &str = r#"Tab size (in spaces) used in source files
+pub const FMT_TAB_SIZE: &str = r#"Number of spaces used for indentation
 
-If the input contains tab characters, the formatter uses this value to determine how
-many spaces each tab represents. Setting this incorrectly can lead to misaligned 
-formatting when the code mixes tabs and spaces."#;
+Sets the indentation width (in spaces) for the formatted output and also
+controls how tab characters in the input are measured. For example, passing
+--tab-size 4 produces output indented with 4 spaces per level and treats each
+input tab character as 4 spaces wide when computing comment alignment.
+
+When this flag is not provided, the indentation width is taken from the
+[fmt.rule] indent_spaces setting in the config file (default: 2)."#;
 
 pub const FIX_ENCODING_LONG_HELP: &str = r#"Convert source files to UTF-8
 

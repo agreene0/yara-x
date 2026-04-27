@@ -3,7 +3,7 @@ use std::io::{Cursor, Seek, SeekFrom};
 use std::path::PathBuf;
 use std::{fs, io, process};
 
-use clap::{ArgAction, ArgMatches, Command, arg, value_parser};
+use clap::{ArgAction, ArgMatches, Command, arg, parser::ValueSource, value_parser};
 use yara_x_fmt::{Formatter, Indentation};
 
 use crate::config::Config;
@@ -25,7 +25,7 @@ pub fn fmt() -> Command {
         )
         .arg(
             arg!(-t - -"tab-size" <NUM_SPACES>)
-                .help("Tab size (in spaces) used in source files")
+                .help("Number of spaces used for indentation")
                 .long_help(help::FMT_TAB_SIZE)
                 .default_value("4")
                 .value_parser(value_parser!(usize)),
@@ -36,6 +36,8 @@ pub fn exec_fmt(args: &ArgMatches, config: &Config) -> anyhow::Result<()> {
     let files = args.get_many::<PathBuf>("FILE").unwrap();
     let check = args.get_flag("check");
     let tab_size = args.get_one::<usize>("tab-size").unwrap();
+    let tab_size_from_cli =
+        args.value_source("tab-size") == Some(ValueSource::CommandLine);
 
     let formatter = Formatter::new()
         .input_tab_size(*tab_size)
@@ -43,7 +45,9 @@ pub fn exec_fmt(args: &ArgMatches, config: &Config) -> anyhow::Result<()> {
         .align_patterns(config.fmt.patterns.align_values)
         .indent_section_headers(config.fmt.rule.indent_section_headers)
         .indent_section_contents(config.fmt.rule.indent_section_contents)
-        .indentation(if config.fmt.rule.indent_spaces == 0 {
+        .indentation(if tab_size_from_cli {
+            Indentation::Spaces(*tab_size)
+        } else if config.fmt.rule.indent_spaces == 0 {
             Indentation::Tabs
         } else {
             Indentation::Spaces(config.fmt.rule.indent_spaces as usize)
